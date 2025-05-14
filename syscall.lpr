@@ -16,15 +16,20 @@ end;
 function syscall(syscallid: uint64; args: array of pointer): ntstatus;
 type
   tsyscall = function(a1, a2, a3, a4: pointer; syscallid, dummy: uint64; a5, a6, a7, a8, a9: pointer): uint64; cdecl;
+var
+  a: array[0..8] of pointer;
+  i: integer;
 begin
-  result := tsyscall(@_syscall)(args[0], args[1], args[2], args[3], syscallid, 0, args[4], args[5], args[6], args[7], args[8]);
+  for i := 0 to high(args) do a[i] := args[i];
+  for i := high(args)+1 to high(a) do a[i] := nil;
+  result := tsyscall(@_syscall)(a[0], a[1], a[2], a[3], syscallid, 0, a[4], a[5], a[6], a[7], a[8]);
 end;
 
 var
   obj: OBJECT_ATTRIBUTES;
   cid: CLIENT_ID;
   h: handle;
-  ret: longint;
+  ret: ntstatus;
 
 begin
   obj.Length := sizeof(obj);
